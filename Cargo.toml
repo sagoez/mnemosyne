@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "mnemosyne",
+    "mnemosyne-derive",
+    "example",
+]
+
+resolver = "2"

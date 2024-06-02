@@ -1,0 +1,12 @@
+[package]
+name = "example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix = "0.13.1"
+actix-rt = { version = "2.9.0" }
+mnemosyne = { path = "../mnemosyne" , features = ["derive", "postgres"] }
+rand = "0.8.5"
+serde = { version = "1.0.193", features = ["derive"] }
+tokio = { version = "1.35.0", features = ["full"] }
