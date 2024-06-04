@@ -46,7 +46,7 @@ services:
       - POSTGRES_DB=mnemosyne
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./src/tables.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./resource/MIGRATION.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
