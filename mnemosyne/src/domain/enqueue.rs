@@ -1,12 +1,11 @@
-use actix::prelude::*;
-use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
-
 use crate::{
     algebra::{Command, Event},
     domain::Error,
     Unit,
 };
+use actix::prelude::*;
+use serde::{de::DeserializeOwned, Serialize};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone)]
 pub enum EnqueueType<Cmd, Evt, State>

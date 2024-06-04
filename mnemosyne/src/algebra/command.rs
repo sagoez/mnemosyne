@@ -1,10 +1,9 @@
-use serde::{de::DeserializeOwned, Serialize};
-
 use super::event::Event;
 use crate::{
     prelude::{Error, NonEmptyVec},
     Unit,
 };
+use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
 pub trait Command<State>: Send + Sync

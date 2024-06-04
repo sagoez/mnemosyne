@@ -1,9 +1,8 @@
-use std::fmt::Debug;
-use std::{error::Error as StdError, writeln};
-
 use deadpool::managed::PoolError;
 use deadpool_postgres::BuildError;
 use rdkafka::error::KafkaError;
+use std::fmt::Debug;
+use std::{error::Error as StdError, writeln};
 use tokio_postgres::Error as PostgresError;
 
 #[derive(thiserror::Error)]

@@ -3,7 +3,6 @@ mod enqueue;
 mod error;
 mod process;
 mod state;
-
 use std::{slice::Iter, vec::IntoIter};
 
 pub(crate) use dequeue::*;

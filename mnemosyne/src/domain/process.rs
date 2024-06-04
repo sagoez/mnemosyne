@@ -1,9 +1,8 @@
+use crate::Unit;
 use crate::{algebra::Record, domain::Error};
 use actix::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
-
-use crate::Unit;
 
 #[derive(Message)]
 #[rtype(result = "Result<Unit, Error>")]

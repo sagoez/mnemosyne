@@ -1,16 +1,14 @@
-use futures::{stream::BoxStream, StreamExt};
-use mongodb::{bson::doc, Client, ClientSession, Database};
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::Value;
-use std::{fmt::Debug, sync::Arc};
-
+use super::Adapter;
 use crate::{
     algebra::{Meta, Record},
     domain::Error,
     Unit,
 };
-
-use super::Adapter;
+use futures::{stream::BoxStream, StreamExt};
+use mongodb::{bson::doc, Client, ClientSession, Database};
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::Value;
+use std::{fmt::Debug, sync::Arc};
 
 pub const EVENT_COLLECTION: &str = "events";
 

@@ -1,7 +1,6 @@
+use crate::{domain::Error, Unit};
 use actix::prelude::*;
 use std::fmt::Debug;
-
-use crate::{domain::Error, Unit};
 
 #[derive(Message, Debug)]
 #[rtype(result = "Result<Unit, Error>")]

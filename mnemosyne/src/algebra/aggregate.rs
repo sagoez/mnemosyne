@@ -1,5 +1,10 @@
+use super::{Command, Event, Inner, Record};
+use crate::domain::{
+    Dequeue, Error, Process, CHUNK_BACKPRESSURE, CHUNK_SIZE, COMMAND_TOPIC, GROUP_ID,
+};
+use crate::storage::Adapter;
+use crate::Unit;
 use actix::prelude::*;
-
 use futures::lock::Mutex;
 use futures::StreamExt;
 use rdkafka::consumer::{CommitMode, Consumer, StreamConsumer};
@@ -9,16 +14,8 @@ use rdkafka::{ClientConfig, Message};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::sync::Arc;
-
-use crate::domain::{
-    Dequeue, Error, Process, CHUNK_BACKPRESSURE, CHUNK_SIZE, COMMAND_TOPIC, GROUP_ID,
-};
-use crate::storage::Adapter;
-use crate::Unit;
-
-use super::{Command, Event, Inner, Record};
 use std::fmt::Debug;
+use std::sync::Arc;
 
 type AddrMap<State, Store, Evt> = HashMap<String, Addr<Inner<State, Store, Evt>>>;
 

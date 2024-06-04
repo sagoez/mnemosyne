@@ -1,16 +1,14 @@
-use actix::prelude::*;
-use futures::lock::Mutex;
-use serde::{de::DeserializeOwned, Serialize};
-use std::{fmt::Debug, sync::Arc};
-
+use super::{Event, Record};
 use crate::{
     algebra::Command,
     domain::{Error, GetState, Process},
     storage::Adapter,
     Unit,
 };
-
-use super::{Event, Record};
+use actix::prelude::*;
+use futures::lock::Mutex;
+use serde::{de::DeserializeOwned, Serialize};
+use std::{fmt::Debug, sync::Arc};
 
 // The actor is essentially single threaded. So we can use a simple struct
 // without any mutexes or other synchronization primitives.

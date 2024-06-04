@@ -1,11 +1,10 @@
 use crate::domain::Error;
 use crate::domain::Inner;
 use crate::storage::Adapter;
+use crate::Unit;
 use actix::prelude::*;
 use std::fmt::Debug;
 use std::time::Duration;
-
-use crate::Unit;
 
 #[derive(Message)]
 #[rtype(result = "Result<Unit, Error>")]

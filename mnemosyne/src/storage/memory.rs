@@ -1,14 +1,12 @@
+use super::{Adapter, Record};
+use crate::{algebra::Meta, domain::Error, Unit};
+use futures::stream::BoxStream;
+use serde::{de::DeserializeOwned, Serialize};
+use std::fmt::Debug;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
-
-use futures::stream::BoxStream;
-use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
-
-use super::{Adapter, Record};
-use crate::{algebra::Meta, domain::Error, Unit};
 
 #[derive(Clone, Debug)]
 pub struct MemoryAdapter {

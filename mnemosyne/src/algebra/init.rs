@@ -1,3 +1,4 @@
+use super::{Aggregate, Event};
 use crate::{
     algebra::{Command, Record},
     domain::{Enqueue, Error, GetState, BATCH_BACKPRESSURE, COMMAND_TOPIC},
@@ -14,8 +15,6 @@ use rdkafka::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{fmt::Debug, sync::Arc, time::Duration};
-
-use super::{Aggregate, Event};
 
 pub struct Init<State, Store, Cmd, Evt>
 where
