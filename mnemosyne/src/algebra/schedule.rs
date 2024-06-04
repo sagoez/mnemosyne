@@ -1,8 +1,10 @@
+use super::{Event, Inner};
 use crate::domain::Error;
-use crate::domain::Inner;
 use crate::storage::Adapter;
 use crate::Unit;
 use actix::prelude::*;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::fmt::Debug;
 use std::time::Duration;
 
@@ -25,11 +27,12 @@ where
     }
 }
 
-impl<F, State, Store> Handler<Schedule<F>> for Inner<State, Store>
+impl<F, State, Store, Evt> Handler<Schedule<F>> for Inner<State, Store, Evt>
 where
     F: FnMut() -> Unit + Send + Sync + 'static,
     State: Debug + Clone + Send + Sync + Unpin + 'static,
     Store: Adapter + Clone + Send + Sync + 'static + Unpin,
+    Evt: Debug + DeserializeOwned + Event<State> + Unpin + Serialize + 'static,
 {
     type Result = Result<Unit, Error>;
 

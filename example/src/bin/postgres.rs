@@ -1,7 +1,7 @@
 use mnemosyne::{
     algebra::{Command, Engine, Event},
     domain::{Error, NonEmptyVec},
-    prelude::{Command as MCommand, Event as MEvent},
+    prelude::{event_vec, Command as MCommand, Event as MEvent},
     rdkafka::ClientConfig,
     storage::{PostgresAdapter, PostgresAdapterBuilder, SslMode},
     Unit,
@@ -45,12 +45,8 @@ pub enum Player {
 }
 
 impl Event<State> for Player {
-    fn apply(&self, _state: &State) -> Result<State, Error> {
-        Ok(State::default())
-    }
-
-    fn effects(&self, _before: &State, _after: &State) -> Unit {
-        println!("Player won: {:?}", self);
+    fn apply(&self, _state: &State) -> Option<State> {
+        Some(State::default())
     }
 }
 
@@ -99,17 +95,11 @@ impl Command<State> for Move {
 
     fn directive(&self, state: &State) -> Result<NonEmptyVec<Box<Self::T>>, Error> {
         if state.winner.is_some() {
-            Ok(NonEmptyVec::new(vec![Box::new(PlayerEvent::GameWon(
-                state.winner.clone().unwrap(),
-            ))])?)
+            event_vec!(PlayerEvent::GameWon(state.winner.clone().unwrap()))
         } else if state.draw {
-            Ok(NonEmptyVec::new(vec![Box::new(PlayerEvent::GameDraw(
-                GameDraw,
-            ))])?)
+            event_vec!(PlayerEvent::GameDraw(GameDraw))
         } else {
-            Ok(NonEmptyVec::new(vec![Box::new(PlayerEvent::MoveMade(
-                self.clone(),
-            ))])?)
+            event_vec!(PlayerEvent::MoveMade(self.clone()))
         }
     }
 
@@ -119,7 +109,7 @@ impl Command<State> for Move {
 }
 
 impl Event<State> for Move {
-    fn apply(&self, state: &State) -> Result<State, Error> {
+    fn apply(&self, state: &State) -> Option<State> {
         let mut board = state.board.clone();
         if let Some(cell) = board
             .inner
@@ -192,27 +182,19 @@ impl Event<State> for Move {
         }
 
         match winner {
-            Some(_) => Ok(State {
+            Some(_) => Some(State {
                 board,
                 current: self.turn(),
                 winner,
                 draw: false,
             }),
-            None => Ok(State {
+            None => Some(State {
                 board,
                 current: self.turn(),
                 winner: None,
                 draw,
             }),
         }
-    }
-
-    fn effects(&self, before: &State, after: &State) -> mnemosyne::Unit {
-        let previous = &before.board.inner[self.x][self.y];
-        let current = &after.board.inner[self.x][self.y];
-
-        println!("Previous: {:?}", previous);
-        println!("Current: {:?}", current);
     }
 }
 
@@ -235,12 +217,8 @@ pub enum PlayerEvent {
 pub struct GameDraw;
 
 impl Event<State> for GameDraw {
-    fn apply(&self, _state: &State) -> Result<State, Error> {
-        Ok(State::default())
-    }
-
-    fn effects(&self, _before: &State, _after: &State) -> Unit {
-        println!("Game ended in a draw");
+    fn apply(&self, _state: &State) -> Option<State> {
+        Some(State::default())
     }
 }
 

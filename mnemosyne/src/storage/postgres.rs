@@ -1,9 +1,5 @@
 use super::Adapter;
-use crate::{
-    algebra::{Meta, Record},
-    domain::Error,
-    Unit,
-};
+use crate::{algebra::Record, domain::Error, Unit};
 use chrono::{DateTime, Utc};
 use deadpool_postgres::GenericClient;
 use deadpool_postgres::{Manager, Pool};
@@ -99,7 +95,6 @@ impl SslMode {
     }
 }
 
-#[async_trait::async_trait]
 impl Adapter for PostgresAdapter {
     async fn read_highest_sequence_number(&self, entity_id: &str) -> Result<Option<u64>, Error> {
         let connection = self
@@ -120,7 +115,7 @@ impl Adapter for PostgresAdapter {
         Ok(number)
     }
 
-    async fn write<T>(&self, batch: Vec<Record<T>>) -> Result<Unit, Error>
+    async fn write<T>(&self, batch: Vec<Record<&T>>) -> Result<Unit, Error>
     where
         T: Serialize + Send + DeserializeOwned + Sync,
     {

@@ -1,6 +1,7 @@
 pub mod algebra;
 pub mod domain;
 pub mod storage;
+pub use futures;
 pub use rdkafka;
 
 pub type Unit = ();

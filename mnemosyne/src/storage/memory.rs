@@ -1,5 +1,5 @@
 use super::{Adapter, Record};
-use crate::{algebra::Meta, domain::Error, Unit};
+use crate::{domain::Error, Unit};
 use futures::stream::BoxStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
@@ -27,7 +27,6 @@ impl Default for MemoryAdapter {
     }
 }
 
-#[async_trait::async_trait]
 impl Adapter for MemoryAdapter {
     async fn read_highest_sequence_number(&self, entity_id: &str) -> Result<Option<u64>, Error> {
         let entity_id_in_bytes = entity_id.as_bytes();
@@ -58,7 +57,7 @@ impl Adapter for MemoryAdapter {
             .max())
     }
 
-    async fn write<T>(&self, batch: Vec<Record<T>>) -> Result<Unit, Error>
+    async fn write<T>(&self, batch: Vec<Record<&T>>) -> Result<Unit, Error>
     where
         T: Serialize + Send + DeserializeOwned + Sync,
     {

@@ -1,12 +1,11 @@
 mod memory;
-mod mongo;
 mod postgres;
 
+use futures::Future;
 pub use memory::*;
-#[cfg(feature = "mongo")]
-pub use mongo::*;
 #[cfg(feature = "postgres")]
 pub use postgres::*;
+use serde::Deserialize;
 
 use crate::Unit;
 use crate::{algebra::Record, domain::Error};
@@ -14,7 +13,6 @@ use futures::stream::BoxStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
-#[async_trait::async_trait]
 pub trait Adapter {
     /// Read the highest sequence number for a given entity id from the database
     ///
@@ -29,7 +27,10 @@ pub trait Adapter {
     /// # Returns
     /// The highest sequence number for the given entity id or None if no sequence number was found
     /// for the given entity id.
-    async fn read_highest_sequence_number(&self, entity_id: &str) -> Result<Option<u64>, Error>;
+    fn read_highest_sequence_number(
+        &self,
+        entity_id: &str,
+    ) -> impl Future<Output = Result<Option<u64>, Error>>;
     /// Write a batch of messages atomically to the database
     ///
     /// # Arguments
@@ -37,9 +38,10 @@ pub trait Adapter {
     ///
     /// # Returns
     /// A Result with Ok(()) if the message was written successfully or `Error` if the message
-    async fn write<T>(&self, batch: Vec<Record<T>>) -> Result<Unit, Error>
+    fn write<T>(&self, batch: Vec<Record<&T>>) -> impl Future<Output = Result<Unit, Error>>
     where
-        T: Serialize + Send + DeserializeOwned + Sync;
+        T: Serialize + Send + Sync,
+        T: for<'de> Deserialize<'de>;
     /// Replay messages from the database for a given entity id and sequence number
     /// range.
     ///
@@ -51,13 +53,13 @@ pub trait Adapter {
     ///
     /// # Returns
     /// A stream of messages replayed from the database for the given entity id and sequence number range.
-    async fn replay<T>(
+    fn replay<T>(
         &self,
         entity_id: &str,
         from_sequence_number: u64,
         to_sequence_number: u64,
         max: u64,
-    ) -> Result<BoxStream<'static, Record<T>>, Error>
+    ) -> impl Future<Output = Result<BoxStream<'static, Record<T>>, Error>>
     where
         T: DeserializeOwned + Send + Debug + 'static + Serialize + Sync;
 }

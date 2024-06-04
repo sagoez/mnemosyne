@@ -11,7 +11,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::{fmt::Debug, sync::Arc};
 
 // The actor is essentially single threaded. So we can use a simple struct
-// without any mutexes or other synchronization primitives.
+// without any mutexes or other synchronization primitives but we use them
+// simply because they make my life easier.
 #[derive(Debug, Clone)]
 pub(crate) struct Inner<State, Store, Evt>
 where
@@ -94,25 +95,44 @@ where
             // 2. If valid, yield events
             let events = cmd.directive(&state)?;
 
-            let mut new_state = state.clone();
-            // // 3. Apply events to state and emit effects
-            for event in events.iter() {
-                new_state = event.apply(&new_state)?;
-                event.effects(&state, &new_state);
-            }
-
-            *state = new_state;
-
             let records = events
-                .into_iter()
+                .iter()
                 .map(|event| {
                     *seq_nr += 1;
                     Record::event(id.clone(), *seq_nr, event, chrono::Utc::now())
                 })
                 .collect::<Vec<_>>();
 
-            // 4. Save events to storage, if this fails it is non-recoverable, so we panic
-            store.write(records).await
+            // 3. Save events to storage, if this fails it is non-recoverable for now
+            store.write(records).await?;
+
+            let initial_state = state.clone();
+
+            // 4. Apply events to state and yield effects
+            let result = events
+                .iter()
+                .try_fold(initial_state, |current_state, event| {
+                    event.apply(&current_state).ok_or_else(|| {
+                        tracing::warn!(
+                            "Event {:?} could not be applied to state {:?}",
+                            event,
+                            current_state
+                        );
+                    })
+                });
+
+            match result {
+                Ok(new_state) => {
+                    cmd.effects(&state, &new_state).await?;
+                    *state = new_state;
+                    Ok(())
+                }
+                Err(_) => Err(Error::Error(format!(
+                    "Could not apply events {:?} for command {:?}",
+                    events, cmd
+                ))),
+            }
+
             // 5. Publish events to Kafka (this should be done in a separate actor)
         })
     }

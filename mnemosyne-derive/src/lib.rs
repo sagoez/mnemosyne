@@ -52,6 +52,7 @@ pub fn derive_command(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     let mut match_arms_validate = quote! {};
     let mut match_arms_directive = quote! {};
     let mut match_arms_entity_id = quote! {};
+    let mut match_arms_effects = quote! {};
 
     if let syn::Data::Enum(data) = input.clone().data {
         for variant in data.variants {
@@ -64,6 +65,9 @@ pub fn derive_command(input: proc_macro::TokenStream) -> proc_macro::TokenStream
             });
             match_arms_directive.extend(quote! {
                 #enum_ident::#variant_ident(command) => command.directive(state),
+            });
+            match_arms_effects.extend(quote! {
+                #enum_ident::#variant_ident(command) => command.effects(before, after),
             });
         }
     } else {
@@ -104,6 +108,12 @@ pub fn derive_command(input: proc_macro::TokenStream) -> proc_macro::TokenStream
                 fn directive(&self, state: &#state_ident) -> Result<mnemosyne::prelude::NonEmptyVec<Box<#directive_ident>>, mnemosyne::domain::Error> {
                     match self {
                         #match_arms_directive
+                    }
+                }
+
+                fn effects(&self, before: &#state_ident, after: &#state_ident) -> impl mnemosyne::futures::Future<Output = Result<mnemosyne::Unit, mnemosyne::domain::Error>> {
+                    match self {
+                        #match_arms_effects
                     }
                 }
 
@@ -191,19 +201,24 @@ pub fn derive_event(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Generate the trait implementation code
     let gen = quote! {
         impl Event<#state_ident> for #enum_ident {
-            fn apply(&self, state: &#state_ident) -> Result<#state_ident, mnemosyne::domain::Error> {
+            fn apply(&self, state: &#state_ident) -> Option<#state_ident> {
                 match self {
                     #match_arms_apply
-                }
-            }
-
-            fn effects(&self, before: &#state_ident, after: &#state_ident) -> mnemosyne::Unit {
-                match self {
-                    #match_arms_effects
                 }
             }
         }
     };
 
+    gen.into()
+}
+
+/// Procedural macro to create events in the following format:
+/// mnemosyne::domain::NonEmptyVec::new(vec![Box::new(Event)]);
+#[proc_macro]
+pub fn event_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as syn::Expr);
+    let gen = quote! {
+        mnemosyne::domain::NonEmptyVec::new(vec![Box::new(#input)])
+    };
     gen.into()
 }

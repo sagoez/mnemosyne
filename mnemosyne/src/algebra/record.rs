@@ -1,14 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-
-pub trait Meta {
-    /// Returns the entity id where the record belongs to
-    fn entity_id(&self) -> &str;
-    /// Returns the sequence number of the record, applicable only to events
-    fn seq_nr(&self) -> i64;
-    /// Returns the timestamp of the record
-    fn timestamp(&self) -> DateTime<Utc>;
-}
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Record<T> {
@@ -62,21 +53,16 @@ impl<T> Record<T> {
     pub fn r#type(&self) -> Option<&str> {
         self.r#type.as_deref()
     }
-}
 
-impl<T> Meta for Record<T>
-where
-    T: Serialize + DeserializeOwned,
-{
-    fn entity_id(&self) -> &str {
+    pub fn entity_id(&self) -> &str {
         &self.entity_id
     }
 
-    fn seq_nr(&self) -> i64 {
+    pub fn seq_nr(&self) -> i64 {
         self.seq_nr
     }
 
-    fn timestamp(&self) -> DateTime<Utc> {
+    pub fn timestamp(&self) -> DateTime<Utc> {
         self.timestamp
     }
 }

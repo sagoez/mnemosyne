@@ -3,6 +3,7 @@ use crate::{
     prelude::{Error, NonEmptyVec},
     Unit,
 };
+use futures::Future;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
@@ -14,11 +15,11 @@ where
 
     /// Validate the command. This function will be called before the `directive`
     /// function. If the command is invalid, an error should be returned.
-    fn validate(&self, state: &State) -> Result<Unit, Error>; // TODO: Check if should be async instead
+    fn validate(&self, state: &State) -> Result<Unit, Error>;
 
     /// Yield a directive. Essentially, it should return an event or a list of events.
     /// Event order is ensured and enforced by the engine.
-    fn directive(&self, state: &State) -> Result<NonEmptyVec<Box<Self::T>>, Error>; //TODO: Check if should be async instead
+    fn directive(&self, state: &State) -> Result<NonEmptyVec<Box<Self::T>>, Error>;
 
     /// Return the entity id of the entity.
     ///
@@ -32,8 +33,15 @@ where
     ///
     /// - The entity id must be unique.
     /// - The entity id must be a string.
-    /// - It must be of the form: `aggregate_type:entity_id`, i.e. `user:atrg-aiuhsn-aiwp`.
     fn entity_id(&self) -> String;
+
+    /// Performs side effects based on the application of the event.
+    ///
+    /// This method is not pure and may trigger side effects. It does not modify the state.
+    #[allow(unused_variables)]
+    fn effects(&self, before: &State, after: &State) -> impl Future<Output = Result<Unit, Error>> {
+        async move { Ok(()) }
+    }
 
     /// Return the name of the command.
     fn name(&self) -> String {

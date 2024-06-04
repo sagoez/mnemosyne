@@ -1,9 +1,10 @@
 use mnemosyne::{
     algebra::{Command, Engine, Event},
     domain::{Error, NonEmptyVec},
-    prelude::{Command as MCommand, Event as MEvent},
+    prelude::{event_vec, Command as MCommand, Event as MEvent},
     rdkafka::ClientConfig,
     storage::MemoryAdapter,
+    Unit,
 };
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, time::Duration};
@@ -32,15 +33,18 @@ impl Command<State> for Increment {
         Ok(())
     }
 
-    fn directive(&self, _state: &State) -> Result<NonEmptyVec<Box<Self::T>>, Error> {
-        let res: Result<NonEmptyVec<Box<UserEvent>>, Error> =
-            NonEmptyVec::new(vec![Box::new(UserEvent::Incremented(Incremented))]);
-
-        res
+    fn directive(&self, _: &State) -> Result<NonEmptyVec<Box<Self::T>>, Error> {
+        event_vec!(UserEvent::Incremented(Incremented))
     }
 
     fn entity_id(&self) -> String {
         ENTITY_ID.to_string()
+    }
+
+    async fn effects(&self, _: &State, _: &State) -> Result<Unit, Error> {
+        println!("I'm actually incrementing after saving the state");
+
+        Ok(())
     }
 }
 
@@ -55,14 +59,10 @@ pub enum UserEvent {
 pub struct Incremented;
 
 impl Event<State> for Incremented {
-    fn apply(&self, state: &State) -> Result<State, Error> {
-        Ok(State {
+    fn apply(&self, state: &State) -> Option<State> {
+        Some(State {
             count: state.count + 1,
         })
-    }
-
-    fn effects(&self, before: &State, after: &State) -> mnemosyne::Unit {
-        println!("Effects: {:?} -> {:?}", before, after);
     }
 }
 
@@ -95,5 +95,6 @@ async fn main() {
 
     let state = engine.state(ENTITY_ID).await.expect("Could not get state");
 
+    assert_eq!(state.count, 10);
     println!("State: {:?}", state); // State { count: 10 }
 }
