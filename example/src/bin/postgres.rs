@@ -162,8 +162,8 @@ impl Event<State> for Move {
         {
             winner = board
                 .inner
-                .get(0)
-                .and_then(|row| row.get(0))
+                .first()
+                .and_then(|row| row.first())
                 .cloned()
                 .flatten();
         }
@@ -174,7 +174,7 @@ impl Event<State> for Move {
         {
             winner = board
                 .inner
-                .get(0)
+                .first()
                 .and_then(|row| row.get(2))
                 .cloned()
                 .flatten();
@@ -259,7 +259,7 @@ async fn main() {
     ))
     .await;
 
-    let mut engine: Engine<State, PostgresAdapter, PlayerCommand, PlayerEvent> =
+    let engine: Engine<State, PostgresAdapter, PlayerCommand, PlayerEvent> =
         Engine::start(configuration.to_owned(), storage)
             .await
             .expect("Could not create engine");

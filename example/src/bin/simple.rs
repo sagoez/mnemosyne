@@ -72,7 +72,7 @@ async fn main() {
     let configuration = configuration.set("bootstrap.servers", "localhost:9092");
     println!("Configuration created");
 
-    let mut engine: Engine<State, MemoryAdapter, UserCommand, Incremented> =
+    let engine: Engine<State, MemoryAdapter, UserCommand, Incremented> =
         Engine::start(configuration.to_owned(), MemoryAdapter::default())
             .await
             .expect("Could not create engine");

@@ -27,7 +27,7 @@ where
     Cmd: Send + Sync + Unpin + 'static + DeserializeOwned + Debug + Command<State> + Serialize,
     Evt: Send + Sync + Unpin + 'static + DeserializeOwned + Debug + Event<State> + Serialize,
 {
-    pub async fn enqueue(&mut self, command: Cmd) -> Result<Unit, Error> {
+    pub async fn enqueue(&self, command: Cmd) -> Result<Unit, Error> {
         self.addr
             .send(Enqueue::from_command(command))
             .await
@@ -36,7 +36,7 @@ where
 
     /// Return the current state of the domain. This state is always guaranteed to be the latest
     /// state of the domain. Even if the actor has just been created, or restarted.
-    pub async fn state(&mut self, entity_id: &str) -> Result<State, Error> {
+    pub async fn state(&self, entity_id: &str) -> Result<State, Error> {
         self.addr
             .send(GetState::new(entity_id))
             .await

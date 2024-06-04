@@ -3,7 +3,6 @@ mod enqueue;
 mod error;
 mod process;
 mod state;
-use std::{slice::Iter, vec::IntoIter};
 
 pub(crate) use dequeue::*;
 pub(crate) use enqueue::*;
@@ -12,6 +11,7 @@ pub(crate) use process::*;
 pub(crate) use state::*;
 
 use serde::{Deserialize, Serialize};
+use std::{slice::Iter, vec::IntoIter};
 
 // Make all this configurable
 pub const STATE_TOPIC: &str = "state";
@@ -67,8 +67,13 @@ impl<T> NonEmptyVec<T> {
     pub fn iter(&self) -> Iter<T> {
         self.0.iter()
     }
+}
 
-    pub fn into_iter(self) -> IntoIter<T> {
+impl<T> IntoIterator for NonEmptyVec<T> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
